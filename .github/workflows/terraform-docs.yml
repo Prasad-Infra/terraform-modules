@@ -1,0 +1,28 @@
+name: Terraform Documentation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform-docs:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [vpc, ec2, s3, load-balancer, vpc-endpoints, route53, ecr, secrets-manager, cloudwatch, eks, kms, acm, terraform-backend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          working-dir: modules/${{ matrix.module }}
+          config-file: ../../.terraform-docs.yml
+          git-push: false
+
+      - name: Check generated documentation
+        run: git diff --exit-code -- modules/${{ matrix.module }}/README.md
