@@ -1,0 +1,23 @@
+formatter: markdown table
+header-from: main.tf
+sections:
+  hide: []
+output:
+  file: README.md
+  mode: inject
+recursive:
+  enabled: false
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: true
+  escape: true
+  hide-empty: true
+  html: true
+  indent: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true

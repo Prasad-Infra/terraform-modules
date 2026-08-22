@@ -1,0 +1,26 @@
+name: Terraform Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [vpc, ec2, s3, load-balancer, vpc-endpoints, route53, ecr, secrets-manager, cloudwatch, eks, kms, acm, terraform-backend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.6.x'
+      - run: terraform init -backend=false -input=false
+        working-directory: modules/${{ matrix.module }}
+      - run: terraform validate
+        working-directory: modules/${{ matrix.module }}
