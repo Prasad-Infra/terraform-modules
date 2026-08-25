@@ -21,12 +21,6 @@ variable "dynamodb_table_name" {
   nullable    = true
 }
 
-variable "prevent_destroy" {
-  description = "Prevent accidental destruction of the state bucket and lock table."
-  type        = bool
-  default     = true
-}
-
 variable "tags" {
   description = "Tags applied to backend resources."
   type        = map(string)

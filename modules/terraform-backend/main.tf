@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "state" {
   force_destroy = false
 
   lifecycle {
-    prevent_destroy = var.prevent_destroy
+    prevent_destroy = true
   }
 
   tags = merge(local.common_tags, { Name = var.bucket_name })
@@ -70,7 +70,7 @@ resource "aws_dynamodb_table" "lock" {
   }
 
   lifecycle {
-    prevent_destroy = var.prevent_destroy
+    prevent_destroy = true
   }
 
   tags = merge(local.common_tags, { Name = coalesce(var.dynamodb_table_name, "${var.bucket_name}-lock") })

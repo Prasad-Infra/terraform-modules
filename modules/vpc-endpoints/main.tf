@@ -45,12 +45,12 @@ resource "aws_vpc_endpoint" "gateway" {
 }
 
 resource "aws_vpc_endpoint" "interface" {
-  for_each           = var.interface_endpoints
-  vpc_id             = var.vpc_id
-  service_name       = startswith(each.value.service, "com.amazonaws.") ? each.value.service : "${local.service_name_prefix}.${each.value.service}"
-  vpc_endpoint_type  = "Interface"
-  subnet_ids         = each.value.subnet_ids
-  security_group_ids = local.interface_sg_ids[each.key]
+  for_each            = var.interface_endpoints
+  vpc_id              = var.vpc_id
+  service_name        = startswith(each.value.service, "com.amazonaws.") ? each.value.service : "${local.service_name_prefix}.${each.value.service}"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = each.value.subnet_ids
+  security_group_ids  = local.interface_sg_ids[each.key]
   private_dns_enabled = each.value.private_dns_enabled
   policy              = each.value.policy
   tags                = merge(local.common_tags, { Name = each.key })

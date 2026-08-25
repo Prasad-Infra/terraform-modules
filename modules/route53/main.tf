@@ -3,8 +3,17 @@ locals {
 }
 
 locals {
-  primary_vpc_id = try(tolist(var.vpc_ids)[0], null)
+  primary_vpc_id     = try(tolist(var.vpc_ids)[0], null)
   additional_vpc_ids = var.private_zone ? setsubtract(var.vpc_ids, toset([local.primary_vpc_id])) : toset([])
+}
+
+check "record_values" {
+  assert {
+    condition = alltrue([
+      for record in values(var.records) : contains(["A", "AAAA", "CNAME"], record.type) && contains(["simple", "weighted", "failover", "latency"], record.routing_policy)
+    ])
+    error_message = "Records must use type A, AAAA, or CNAME and a supported routing policy."
+  }
 }
 
 resource "aws_route53_zone" "this" {
@@ -25,19 +34,19 @@ resource "aws_route53_zone_association" "additional" {
 }
 
 resource "aws_route53_health_check" "this" {
-  for_each                         = var.health_checks
-  fqdn                             = each.value.fqdn
-  ip_address                       = each.value.ip_address
-  port                             = each.value.port
-  type                             = each.value.type
-  resource_path                    = each.value.resource_path
-  failure_threshold                = each.value.failure_threshold
-  request_interval                 = each.value.request_interval
-  measure_latency                  = each.value.measure_latency
-  invert_healthcheck               = each.value.invert_healthcheck
-  disabled                         = each.value.disabled
-  child_health_threshold            = each.value.child_health_threshold
-  tags                             = merge(local.common_tags, { Name = each.key })
+  for_each               = var.health_checks
+  fqdn                   = each.value.fqdn
+  ip_address             = each.value.ip_address
+  port                   = each.value.port
+  type                   = each.value.type
+  resource_path          = each.value.resource_path
+  failure_threshold      = each.value.failure_threshold
+  request_interval       = each.value.request_interval
+  measure_latency        = each.value.measure_latency
+  invert_healthcheck     = each.value.invert_healthcheck
+  disabled               = each.value.disabled
+  child_health_threshold = each.value.child_health_threshold
+  tags                   = merge(local.common_tags, { Name = each.key })
 }
 
 resource "aws_route53_record" "this" {

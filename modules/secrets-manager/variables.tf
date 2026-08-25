@@ -9,10 +9,10 @@ variable "secrets" {
     tags                    = optional(map(string), {})
     resource_policy         = optional(string)
     rotation = optional(object({
-      rotation_lambda_arn     = string
+      rotation_lambda_arn      = string
       automatically_after_days = optional(number, 30)
-      duration                = optional(string)
-      rotate_immediately      = optional(bool, true)
+      duration                 = optional(string)
+      rotate_immediately       = optional(bool, true)
     }))
   }))
   default = {}

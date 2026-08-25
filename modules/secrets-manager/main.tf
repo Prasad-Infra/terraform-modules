@@ -12,9 +12,9 @@ resource "aws_secretsmanager_secret" "this" {
 }
 
 resource "aws_secretsmanager_secret_version" "this" {
-  for_each      = nonsensitive(toset(keys(var.secret_values)))
-  secret_id     = aws_secretsmanager_secret.this[each.key].id
-  secret_string = var.secret_values[each.key]
+  for_each       = nonsensitive(toset(keys(var.secret_values)))
+  secret_id      = aws_secretsmanager_secret.this[each.key].id
+  secret_string  = var.secret_values[each.key]
   version_stages = var.secrets[each.key].version_stages
 }
 
@@ -26,11 +26,11 @@ resource "aws_secretsmanager_secret_rotation" "this" {
 
   rotation_rules {
     automatically_after_days = each.value.rotation.automatically_after_days
-    duration                  = each.value.rotation.duration
+    duration                 = each.value.rotation.duration
   }
 }
 
-resource "aws_secretsmanager_resource_policy" "this" {
+resource "aws_secretsmanager_secret_policy" "this" {
   for_each   = { for key, secret in var.secrets : key => secret if secret.resource_policy != null }
   secret_arn = aws_secretsmanager_secret.this[each.key].arn
   policy     = each.value.resource_policy

@@ -10,6 +10,6 @@ output "node_group_ids" { value = { for key, group in aws_eks_node_group.this : 
 output "node_group_arns" { value = { for key, group in aws_eks_node_group.this : key => group.arn } }
 output "node_iam_role_arns" { value = { for key, group in var.node_groups : key => group.node_role_arn } }
 output "cluster_certificate_authority" {
-	value     = aws_eks_cluster.this.certificate_authority[0].data
-	sensitive = true
+  value     = aws_eks_cluster.this.certificate_authority[0].data
+  sensitive = true
 }

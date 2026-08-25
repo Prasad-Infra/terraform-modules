@@ -48,6 +48,7 @@ resource "aws_vpc_security_group_egress_rule" "cluster" {
   security_group_id = aws_security_group.cluster[0].id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
+  description       = "Allow EKS control plane egress required by AWS"
 }
 
 resource "aws_vpc_security_group_egress_rule" "node" {
@@ -55,6 +56,7 @@ resource "aws_vpc_security_group_egress_rule" "node" {
   security_group_id = aws_security_group.node[0].id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
+  description       = "Allow EKS worker node egress to AWS services and workloads"
 }
 
 resource "aws_eks_cluster" "this" {
@@ -131,6 +133,11 @@ resource "aws_launch_template" "node" {
   name                   = "${var.cluster_name}-${each.key}"
   vpc_security_group_ids = local.node_security_group_ids
   user_data              = each.value.user_data == null ? null : base64encode(each.value.user_data)
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
@@ -163,17 +170,17 @@ resource "aws_eks_addon" "this" {
 }
 
 resource "aws_eks_access_entry" "this" {
-  for_each      = var.access_entries
-  cluster_name  = aws_eks_cluster.this.name
-  principal_arn = each.value.principal_arn
-  type          = each.value.type
-  user_name     = each.value.user_name
+  for_each          = var.access_entries
+  cluster_name      = aws_eks_cluster.this.name
+  principal_arn     = each.value.principal_arn
+  type              = each.value.type
+  user_name         = each.value.user_name
   kubernetes_groups = each.value.kubernetes_groups
 }
 
 resource "aws_iam_role" "irsa" {
-  for_each           = var.irsa_roles
-  name               = each.value.role_name
+  for_each = var.irsa_roles
+  name     = each.value.role_name
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -190,7 +197,7 @@ resource "aws_iam_role" "irsa" {
       }
     }]
   })
-  tags               = merge(local.common_tags, { Name = each.value.role_name })
+  tags = merge(local.common_tags, { Name = each.value.role_name })
 }
 
 resource "aws_iam_role_policy_attachment" "irsa" {

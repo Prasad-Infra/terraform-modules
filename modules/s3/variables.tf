@@ -9,11 +9,11 @@ variable "buckets" {
     object_ownership = optional(string, "BucketOwnerEnforced")
     bucket_policy    = optional(string)
     lifecycle_rules = optional(list(object({
-      id                          = string
-      status                      = optional(string, "Enabled")
-      filter_prefix               = optional(string)
-      expiration_days             = optional(number)
-      noncurrent_expiration_days  = optional(number)
+      id                         = string
+      status                     = optional(string, "Enabled")
+      filter_prefix              = optional(string)
+      expiration_days            = optional(number)
+      noncurrent_expiration_days = optional(number)
       transitions = optional(list(object({
         days          = number
         storage_class = string
