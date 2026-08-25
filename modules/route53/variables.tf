@@ -17,25 +17,19 @@ variable "vpc_ids" {
 variable "health_checks" {
   description = "Health checks keyed by stable logical name."
   type = map(object({
-    fqdn                      = optional(string)
-    ip_address                = optional(string)
-    port                      = optional(number, 443)
-    type                      = optional(string, "HTTPS")
-    resource_path             = optional(string, "/")
-    failure_threshold         = optional(number, 3)
-    request_interval          = optional(number, 30)
-    measure_latency           = optional(bool, true)
-    invert_healthcheck        = optional(bool, false)
-    disabled                  = optional(bool, false)
-    child_health_threshold    = optional(number)
+    fqdn                   = optional(string)
+    ip_address             = optional(string)
+    port                   = optional(number, 443)
+    type                   = optional(string, "HTTPS")
+    resource_path          = optional(string, "/")
+    failure_threshold      = optional(number, 3)
+    request_interval       = optional(number, 30)
+    measure_latency        = optional(bool, true)
+    invert_healthcheck     = optional(bool, false)
+    disabled               = optional(bool, false)
+    child_health_threshold = optional(number)
   }))
   default = {}
-  validation {
-    condition = alltrue([
-      for record in values(var.records) : contains(["A", "AAAA", "CNAME"], record.type) && contains(["simple", "weighted", "failover", "latency"], record.routing_policy)
-    ])
-    error_message = "Records must use type A, AAAA, or CNAME and a supported routing policy."
-  }
 }
 
 variable "records" {

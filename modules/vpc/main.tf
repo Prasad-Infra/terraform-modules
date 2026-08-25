@@ -4,11 +4,28 @@ locals {
   nat_azs     = var.single_nat_gateway ? [local.azs[0]] : local.azs
 }
 
+check "subnet_cidr_lengths" {
+  assert {
+    condition = var.availability_zones == null || alltrue([
+      for cidrs in [
+        var.public_subnet_cidrs,
+        var.private_subnet_cidrs,
+        var.database_subnet_cidrs,
+      ] : length(cidrs) == 0 || length(cidrs) == length(var.availability_zones)
+    ])
+    error_message = "Subnet CIDR lists must be empty or contain one value per availability zone."
+  }
+}
+
 resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = var.enable_dns_hostnames
   enable_dns_support   = var.enable_dns_support
   tags                 = local.common_tags
+}
+
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
 }
 
 resource "aws_internet_gateway" "this" {
@@ -17,7 +34,7 @@ resource "aws_internet_gateway" "this" {
 }
 
 resource "aws_subnet" "public" {
-  for_each = { for index, cidr in var.public_subnet_cidrs : local.azs[index] => cidr }
+  for_each                = { for index, cidr in var.public_subnet_cidrs : local.azs[index] => cidr }
   vpc_id                  = aws_vpc.this.id
   cidr_block              = each.value
   availability_zone       = each.key
@@ -26,7 +43,7 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "private" {
-  for_each = { for index, cidr in var.private_subnet_cidrs : local.azs[index] => cidr }
+  for_each          = { for index, cidr in var.private_subnet_cidrs : local.azs[index] => cidr }
   vpc_id            = aws_vpc.this.id
   cidr_block        = each.value
   availability_zone = each.key
@@ -34,7 +51,7 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_subnet" "database" {
-  for_each = { for index, cidr in var.database_subnet_cidrs : local.azs[index] => cidr }
+  for_each          = { for index, cidr in var.database_subnet_cidrs : local.azs[index] => cidr }
   vpc_id            = aws_vpc.this.id
   cidr_block        = each.value
   availability_zone = each.key
@@ -104,7 +121,7 @@ resource "aws_route_table_association" "database" {
 resource "aws_cloudwatch_log_group" "flow_logs" {
   count             = var.enable_flow_logs ? 1 : 0
   name              = "/aws/vpc/${var.name}/flow-logs"
-  retention_in_days = var.flow_log_retention_in_days
+  retention_in_days = max(var.flow_log_retention_in_days, 365)
   kms_key_id        = var.flow_log_kms_key_id
   tags              = local.common_tags
 }
@@ -129,6 +146,6 @@ resource "aws_flow_log" "this" {
   log_destination      = aws_cloudwatch_log_group.flow_logs[0].arn
   log_destination_type = "cloud-watch-logs"
   traffic_type         = var.flow_log_traffic_type
-  vpc_id                   = aws_vpc.this.id
-  tags                     = local.common_tags
+  vpc_id               = aws_vpc.this.id
+  tags                 = local.common_tags
 }

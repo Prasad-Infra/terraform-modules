@@ -3,13 +3,13 @@ locals {
 }
 
 resource "aws_lb" "this" {
-  name                       = var.name
-  internal                   = var.internal
-  load_balancer_type         = var.load_balancer_type
-  security_groups            = var.load_balancer_type == "application" ? var.security_group_ids : null
-  subnets                    = var.subnet_ids
-  drop_invalid_header_fields = var.load_balancer_type == "application" ? true : null
-  enable_deletion_protection = var.enable_deletion_protection
+  name                             = var.name
+  internal                         = var.internal
+  load_balancer_type               = var.load_balancer_type
+  security_groups                  = var.load_balancer_type == "application" ? var.security_group_ids : null
+  subnets                          = var.subnet_ids
+  drop_invalid_header_fields       = var.load_balancer_type == "application" ? true : null
+  enable_deletion_protection       = var.enable_deletion_protection
   enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
 
   dynamic "access_logs" {
@@ -25,11 +25,11 @@ resource "aws_lb" "this" {
 }
 
 resource "aws_lb_target_group" "this" {
-  for_each = var.target_groups
-  name     = each.value.name == null ? "${var.name}-${each.key}" : each.value.name
-  port     = each.value.port
-  protocol = each.value.protocol
-  vpc_id   = var.vpc_id
+  for_each    = var.target_groups
+  name        = each.value.name == null ? "${var.name}-${each.key}" : each.value.name
+  port        = each.value.port
+  protocol    = each.value.protocol
+  vpc_id      = var.vpc_id
   target_type = each.value.target_type
 
   health_check {
@@ -52,10 +52,10 @@ resource "aws_lb_target_group_attachment" "this" {
     for target in flatten([
       for group_key, group in var.target_groups : [
         for target_key, attachment in group.targets : {
-          key         = "${group_key}/${target_key}"
-          group_key   = group_key
-          target_id   = attachment.target_id
-          port        = attachment.port
+          key       = "${group_key}/${target_key}"
+          group_key = group_key
+          target_id = attachment.target_id
+          port      = attachment.port
         }
       ]
     ]) : target.key => target

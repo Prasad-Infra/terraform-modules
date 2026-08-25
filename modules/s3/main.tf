@@ -57,6 +57,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
       filter {
         prefix = rule.value.filter_prefix
       }
+      abort_incomplete_multipart_upload {
+        days_after_initiation = 7
+      }
       dynamic "expiration" {
         for_each = rule.value.expiration_days == null ? [] : [rule.value.expiration_days]
         content {
@@ -85,12 +88,12 @@ resource "aws_s3_bucket_intelligent_tiering_configuration" "this" {
     for item in flatten([
       for bucket_key, bucket in var.buckets : [
         for configuration in bucket.intelligent_tiering : {
-          key           = "${bucket_key}/${configuration.name}"
-          bucket_key    = bucket_key
-          name          = configuration.name
-          prefix        = configuration.prefix
-          status        = configuration.status
-          tierings      = configuration.tierings
+          key        = "${bucket_key}/${configuration.name}"
+          bucket_key = bucket_key
+          name       = configuration.name
+          prefix     = configuration.prefix
+          status     = configuration.status
+          tierings   = configuration.tierings
         }
       ]
     ]) : item.key => item
@@ -126,8 +129,8 @@ resource "aws_s3_bucket_cors_configuration" "this" {
 }
 
 resource "aws_s3_bucket_logging" "this" {
-  for_each = { for key, bucket in var.buckets : key => bucket if bucket.access_logging != null }
-  bucket   = aws_s3_bucket.this[each.key].id
+  for_each      = { for key, bucket in var.buckets : key => bucket if bucket.access_logging != null }
+  bucket        = aws_s3_bucket.this[each.key].id
   target_bucket = each.value.access_logging.bucket
   target_prefix = each.value.access_logging.prefix
 }

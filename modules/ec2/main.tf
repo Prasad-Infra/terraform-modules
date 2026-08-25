@@ -1,9 +1,9 @@
 locals {
-  common_tags             = merge(var.tags, { Environment = var.environment, Project = var.project, ManagedBy = "Terraform", Owner = var.owner })
-  role_name              = coalesce(var.iam_role_name, "${var.name_prefix}-ec2")
-  instance_profile       = var.create_iam_role ? aws_iam_instance_profile.this[0].name : var.instance_profile_name
-  managed_security_ids   = var.create_security_group ? toset([aws_security_group.this[0].id]) : toset([])
-  instance_security_ids  = { for key, instance in var.instances : key => setunion(instance.security_group_ids, local.managed_security_ids) }
+  common_tags           = merge(var.tags, { Environment = var.environment, Project = var.project, ManagedBy = "Terraform", Owner = var.owner })
+  role_name             = coalesce(var.iam_role_name, "${var.name_prefix}-ec2")
+  instance_profile      = var.create_iam_role ? aws_iam_instance_profile.this[0].name : var.instance_profile_name
+  managed_security_ids  = var.create_security_group ? toset([aws_security_group.this[0].id]) : toset([])
+  instance_security_ids = { for key, instance in var.instances : key => setunion(instance.security_group_ids, local.managed_security_ids) }
 }
 
 resource "aws_iam_role" "this" {
@@ -104,7 +104,7 @@ resource "aws_launch_template" "this" {
 }
 
 resource "aws_instance" "this" {
-  for_each = var.instances
+  for_each                    = var.instances
   subnet_id                   = each.value.subnet_id
   associate_public_ip_address = each.value.associate_public_ip
   launch_template {
